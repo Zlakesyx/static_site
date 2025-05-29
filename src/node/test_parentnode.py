@@ -1,7 +1,7 @@
 import unittest
 
-from parentnode import ParentNode
-from leafnode import LeafNode
+from node.parentnode import ParentNode
+from node.leafnode import LeafNode
 
 props = {
     "href": "https://www.google.com",

@@ -1,6 +1,6 @@
 import unittest
 
-from leafnode import LeafNode
+from node.leafnode import LeafNode
 
 props = {
     "href": "https://www.google.com",

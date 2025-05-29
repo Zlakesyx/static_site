@@ -1,5 +1,5 @@
-from textnode import TextNode, TextType
-from leafnode import LeafNode
+from node.textnode import TextNode, TextType
+from node.leafnode import LeafNode
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:

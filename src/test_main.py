@@ -1,7 +1,7 @@
 import unittest
 
-from leafnode import LeafNode
-from textnode import TextNode, TextType
+from node.leafnode import LeafNode
+from node.textnode import TextNode, TextType
 from main import text_node_to_html_node
 
 props = {
