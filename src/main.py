@@ -1,5 +1,34 @@
+import copy
 from node.textnode import TextNode, TextType
 from node.leafnode import LeafNode
+
+
+def split_nodes_delimiter(
+    old_nodes: list[TextNode],
+    delimiter: str,
+    text_type: TextType,
+) -> list[TextNode]:
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT:
+            new_nodes.append(copy.deepcopy(node))
+            continue
+
+        buffer = node.text.split(delimiter)
+        if len(buffer) % 2 == 0:
+            raise ValueError(
+                f"Invalid Markdown syntax. Unclosed delimiter [{delimiter}]"
+            )
+
+        # Matches will be every odd index, not including 1st and last
+        for i, text in enumerate(buffer):
+            if not text:
+                continue
+            elif i % 2 == 1 and not (i == 0 or i == len(buffer) - 1):
+                new_nodes.append(TextNode(text, text_type))
+            else:
+                new_nodes.append(TextNode(text, TextType.TEXT))
+    return new_nodes
 
 
 def text_node_to_html_node(text_node: TextNode) -> LeafNode:

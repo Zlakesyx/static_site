@@ -2,7 +2,7 @@ import unittest
 
 from node.leafnode import LeafNode
 from node.textnode import TextNode, TextType
-from main import text_node_to_html_node
+from main import split_nodes_delimiter, text_node_to_html_node
 
 props = {
     "href": "https://www.google.com",
@@ -49,6 +49,110 @@ class TestMain(unittest.TestCase):
         self.assertEqual(html_node.tag, "img")
         self.assertEqual(html_node.value, None)
         self.assertEqual(html_node.props, {"src": "url.com", "alt": "image node"})
+
+    def test_split_nodes_delimiter_all_text(self):
+        nodes = [TextNode(f"text node: {i}", TextType.TEXT) for i in range(3)]
+        results = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+        self.assertListEqual(results, nodes)
+
+    def test_split_nodes_delimiter_bold(self):
+        nodes = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("**bold** not bold", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        expected = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" not bold", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        results = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+        self.assertEqual(results, expected)
+
+    def test_split_nodes_delimiter_italics(self):
+        nodes = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("_italic_ not italic", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        expected = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" not italic", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        results = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+        self.assertEqual(results, expected)
+
+    def test_split_nodes_delimiter_code(self):
+        nodes = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("`code` not code", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        expected = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("code", TextType.CODE),
+            TextNode(" not code", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        results = split_nodes_delimiter(nodes, "`", TextType.CODE)
+        self.assertEqual(results, expected)
+
+    def test_split_nodes_delimiter_multiple(self):
+        nodes = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode("bold", TextType.BOLD),
+            TextNode("code", TextType.CODE),
+            TextNode("_italic first_**then bold**`then code`", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        expected_1 = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode("bold", TextType.BOLD),
+            TextNode("code", TextType.CODE),
+            TextNode("italic first", TextType.ITALIC),
+            TextNode("**then bold**`then code`", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        expected_2 = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode("bold", TextType.BOLD),
+            TextNode("code", TextType.CODE),
+            TextNode("italic first", TextType.ITALIC),
+            TextNode("then bold", TextType.BOLD),
+            TextNode("`then code`", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        expected_3 = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode("bold", TextType.BOLD),
+            TextNode("code", TextType.CODE),
+            TextNode("italic first", TextType.ITALIC),
+            TextNode("then bold", TextType.BOLD),
+            TextNode("then code", TextType.CODE),
+            TextNode("last text", TextType.TEXT),
+        ]
+        results = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+        self.assertEqual(results, expected_1)
+        results = split_nodes_delimiter(results, "**", TextType.BOLD)
+        self.assertEqual(results, expected_2)
+        results = split_nodes_delimiter(results, "`", TextType.CODE)
+        self.assertEqual(results, expected_3)
+
+    def test_split_nodes_delimiter_unclosed_delimiter_error(self):
+        nodes = [
+            TextNode("first text", TextType.TEXT),
+            TextNode("_italic not italic", TextType.TEXT),
+            TextNode("last text", TextType.TEXT),
+        ]
+        args = (nodes, "_", TextType.ITALIC)
+        self.assertRaises(ValueError, split_nodes_delimiter, *args)
 
 
 if __name__ == "__main__":
