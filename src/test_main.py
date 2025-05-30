@@ -2,7 +2,12 @@ import unittest
 
 from node.leafnode import LeafNode
 from node.textnode import TextNode, TextType
-from main import split_nodes_delimiter, text_node_to_html_node
+from main import (
+    extract_markdown_images,
+    extract_markdown_links,
+    split_nodes_delimiter,
+    text_node_to_html_node,
+)
 
 props = {
     "href": "https://www.google.com",
@@ -153,6 +158,31 @@ class TestMain(unittest.TestCase):
         ]
         args = (nodes, "_", TextType.ITALIC)
         self.assertRaises(ValueError, split_nodes_delimiter, *args)
+
+    def test_extract_markdown_images(self):
+        text = (
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
+            "This is text with an ![fakeimage](https://fake_img.png)"
+        )
+        matches = extract_markdown_images(text)
+        self.assertListEqual(
+            [
+                ("image", "https://i.imgur.com/zjjcJKZ.png"),
+                ("fakeimage", "https://fake_img.png"),
+            ],
+            matches,
+        )
+
+    def test_extract_markdown_links(self):
+        text = (
+            "This is text with an [youtube](https://youtube.com)"
+            "This is text with an [fakeurl](https://fakeurl.com)"
+        )
+        matches = extract_markdown_links(text)
+        self.assertListEqual(
+            [("youtube", "https://youtube.com"), ("fakeurl", "https://fakeurl.com")],
+            matches,
+        )
 
 
 if __name__ == "__main__":

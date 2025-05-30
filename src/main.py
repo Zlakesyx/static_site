@@ -1,6 +1,20 @@
 import copy
+import re
+
 from node.textnode import TextNode, TextType
 from node.leafnode import LeafNode
+
+
+def extract_markdown_images(text: str) -> list[tuple[str, str]]:
+    #![rick roll](https://i.imgur.com/aKaOqIh.gif)
+    pattern = r"\!\[(.*?)\]\((.*?)\)"
+    return re.findall(pattern, text)
+
+
+def extract_markdown_links(text: str) -> list[tuple[str, str]]:
+    # [youtube](https://www.youtube.com)
+    pattern = r"\[(.*?)\]\((.*?)\)"
+    return re.findall(pattern, text)
 
 
 def split_nodes_delimiter(
@@ -51,6 +65,16 @@ def text_node_to_html_node(text_node: TextNode) -> LeafNode:
 def main():
     node = TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev")
     print(node)
+    print(
+        extract_markdown_images(
+            "This is an image: ![rick roll](https://i.imgur.com/aKaOqIh.gif). end."
+        )
+    )
+    print(
+        extract_markdown_links(
+            "This is an link: [youtube](https://www.youtube.com). end."
+        )
+    )
 
 
 if __name__ == "__main__":
