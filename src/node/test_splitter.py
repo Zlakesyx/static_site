@@ -1,60 +1,14 @@
 import unittest
 
-from node.leafnode import LeafNode
 from node.textnode import TextNode, TextType
-from main import (
-    extract_markdown_images,
-    extract_markdown_links,
+from node.splitter import (
     split_nodes_delimiter,
-    text_node_to_html_node,
+    split_nodes_images,
+    split_nodes_links,
 )
 
-props = {
-    "href": "https://www.google.com",
-    "target": "_blank",
-}
 
-
-class TestMain(unittest.TestCase):
-
-    def test_text(self):
-        node = TextNode("text node", TextType.TEXT)
-        html_node: LeafNode = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, None)
-        self.assertEqual(html_node.value, "text node")
-
-    def test_bold(self):
-        node = TextNode("bold node", TextType.BOLD)
-        html_node: LeafNode = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "b")
-        self.assertEqual(html_node.value, "bold node")
-
-    def test_italic(self):
-        node = TextNode("italic node", TextType.ITALIC)
-        html_node: LeafNode = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "i")
-        self.assertEqual(html_node.value, "italic node")
-
-    def test_code(self):
-        node = TextNode("code node", TextType.CODE)
-        html_node: LeafNode = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "code")
-        self.assertEqual(html_node.value, "code node")
-
-    def test_link(self):
-        node = TextNode("link node", TextType.LINK, "url.com")
-        html_node: LeafNode = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "a")
-        self.assertEqual(html_node.value, "link node")
-        self.assertEqual(html_node.props, {"href": "url.com"})
-
-    def test_image(self):
-        node = TextNode("image node", TextType.IMAGE, "url.com")
-        html_node: LeafNode = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "img")
-        self.assertEqual(html_node.value, None)
-        self.assertEqual(html_node.props, {"src": "url.com", "alt": "image node"})
-
+class TestSplitter(unittest.TestCase):
     def test_split_nodes_delimiter_all_text(self):
         nodes = [TextNode(f"text node: {i}", TextType.TEXT) for i in range(3)]
         results = split_nodes_delimiter(nodes, "**", TextType.BOLD)
@@ -159,29 +113,81 @@ class TestMain(unittest.TestCase):
         args = (nodes, "_", TextType.ITALIC)
         self.assertRaises(ValueError, split_nodes_delimiter, *args)
 
-    def test_extract_markdown_images(self):
-        text = (
-            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png)"
-            "This is text with an ![fakeimage](https://fake_img.png)"
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
         )
-        matches = extract_markdown_images(text)
+        new_nodes = split_nodes_images([node])
         self.assertListEqual(
             [
-                ("image", "https://i.imgur.com/zjjcJKZ.png"),
-                ("fakeimage", "https://fake_img.png"),
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
             ],
-            matches,
+            new_nodes,
         )
 
-    def test_extract_markdown_links(self):
-        text = (
-            "This is text with an [youtube](https://youtube.com)"
-            "This is text with an [fakeurl](https://fakeurl.com)"
-        )
-        matches = extract_markdown_links(text)
+    def test_split_links_single(self):
+        nodes = [
+            TextNode(
+                "This is text with an [link](https://youtube.com) and another [second link](https://youtube.com/second)",
+                TextType.TEXT,
+            )
+        ]
+        new_nodes = split_nodes_links(nodes)
         self.assertListEqual(
-            [("youtube", "https://youtube.com"), ("fakeurl", "https://fakeurl.com")],
-            matches,
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://youtube.com"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second link", TextType.LINK, "https://youtube.com/second"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_multiple(self):
+        nodes = [
+            TextNode(
+                "This is text with an [link](https://youtube.com) and another [second link](https://youtube.com/second)",
+                TextType.TEXT,
+            ),
+            TextNode("link", TextType.LINK, "https://youtube.com"),
+            TextNode(
+                "last link [last link](http://lastlink.com)",
+                TextType.TEXT,
+            ),
+        ]
+        new_nodes = split_nodes_links(nodes)
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://youtube.com"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode("second link", TextType.LINK, "https://youtube.com/second"),
+                TextNode("link", TextType.LINK, "https://youtube.com"),
+                TextNode("last link ", TextType.TEXT),
+                TextNode("last link", TextType.LINK, "http://lastlink.com"),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links_none(self):
+        nodes = [
+            TextNode(
+                "This is text",
+                TextType.TEXT,
+            )
+        ]
+        new_nodes = split_nodes_links(nodes)
+        self.assertListEqual(
+            [
+                TextNode("This is text", TextType.TEXT),
+            ],
+            new_nodes,
         )
 
 
