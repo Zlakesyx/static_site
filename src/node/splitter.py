@@ -4,6 +4,16 @@ from node import extractor
 from node.textnode import TextNode, TextType
 
 
+def text_to_nodes(text: str) -> list[TextNode]:
+    nodes = [TextNode(text, TextType.TEXT)]
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    nodes = split_nodes_images(nodes)
+    nodes = split_nodes_links(nodes)
+    return nodes
+
+
 def split_nodes_images(old_nodes: list[TextNode]) -> list[TextNode]:
     new_nodes = []
     for node in old_nodes:
@@ -16,6 +26,7 @@ def split_nodes_images(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(copy.deepcopy(node))
             continue
 
+        after = []
         temp_text = node.text
         for description, url in links:
             delimiter = f"![{description}]({url})"
@@ -24,6 +35,9 @@ def split_nodes_images(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(TextNode(before, TextType.TEXT))
             new_nodes.append(TextNode(description, TextType.IMAGE, url))
             temp_text = after
+
+        if after:
+            new_nodes.append(TextNode(after, TextType.TEXT))
 
     return new_nodes
 
@@ -40,6 +54,7 @@ def split_nodes_links(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(copy.deepcopy(node))
             continue
 
+        after = []
         temp_text = node.text
         for description, url in links:
             delimiter = f"[{description}]({url})"
@@ -48,6 +63,9 @@ def split_nodes_links(old_nodes: list[TextNode]) -> list[TextNode]:
             new_nodes.append(TextNode(before, TextType.TEXT))
             new_nodes.append(TextNode(description, TextType.LINK, url))
             temp_text = after
+
+        if after:
+            new_nodes.append(TextNode(after, TextType.TEXT))
 
     return new_nodes
 
