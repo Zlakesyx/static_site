@@ -24,3 +24,6 @@ class ParentNode(HTMLNode):
 
         html_str += f"</{self.tag}>"
         return html_str
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}, {self.tag}, {self.children}, {self.props}"

@@ -21,4 +21,4 @@ class HTMLNode:
         return html_str.strip()
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}, {self.tag}, {self.value}, {self.children}, {self.props}"
+        return f"{self.__class__.__name__}({self.tag}, {self.value}, {self.children}, {self.props})"

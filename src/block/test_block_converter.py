@@ -23,9 +23,6 @@ class TestBlockConverter(unittest.TestCase):
     def test_markdown_to_blocks(self):
         self.assertEqual(markdown_to_blocks(md), blocks)
 
-        # return BlockType.UNORDERED_LIST
-        # return BlockType.ORDERED_LIST
-
     def test_block_to_heading(self):
         inputs = [
             "# heading",
@@ -45,12 +42,18 @@ class TestBlockConverter(unittest.TestCase):
         inputs = [
             "``` this is a code block ```",
             "```this is a code block```",
+            """
+```
+this is a code block
+```
+""",
         ]
         not_code = [
             "not code```this is not a code block```",
             "```this is not a code block``` not code",
         ]
         for input in inputs:
+            print(input)
             self.assertEqual(block_to_block_type(input), BlockType.CODE)
         for input in not_code:
             self.assertNotEqual(block_to_block_type(input), BlockType.CODE)
@@ -62,7 +65,7 @@ class TestBlockConverter(unittest.TestCase):
         ]
         not_quote = [
             "!> quote",
-            "\n> quote\n>quote",
+            "not quote\n>quote",
         ]
         for input in inputs:
             self.assertEqual(block_to_block_type(input), BlockType.QUOTE)
@@ -73,10 +76,18 @@ class TestBlockConverter(unittest.TestCase):
         inputs = [
             "- item",
             "- item\n- item",
+            """
+- item
+- item 2
+""",
         ]
         not_unorderd_list = [
             "!- item",
-            "\n- item\n-item",
+            "not item\n-item",
+            """
+!- item
+- item 2
+""",
         ]
         for input in inputs:
             self.assertEqual(block_to_block_type(input), BlockType.UNORDERED_LIST)
@@ -87,10 +98,18 @@ class TestBlockConverter(unittest.TestCase):
         inputs = [
             "1. item",
             "1. item\n2. item",
+            """
+1. item
+2. item 2
+""",
         ]
         not_unorderd_list = [
             "2. item",
             "-1. item\n2. item",
+            """
+1. item
+3. item 3
+""",
         ]
         for input in inputs:
             self.assertEqual(block_to_block_type(input), BlockType.ORDERED_LIST)
