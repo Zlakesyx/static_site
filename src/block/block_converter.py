@@ -67,13 +67,12 @@ def _is_ordered_list(block: str) -> bool:
 def strip_block(block: str, block_type: BlockType) -> str:
     if block_type == BlockType.HEADING:
         count = block.count("#", 0, 6)
-        return block.lstrip("#"*count + " ")
+        return block.lstrip("#" * count + " ")
     elif block_type == BlockType.CODE:
         return block.strip("```")
     elif block_type == BlockType.QUOTE:
         return block.replace(">", "")
-    #elif block_type == BlockType.UNORDERED_LIST:
-    #elif block_type == BlockType.ORDERED_LIST:
-    #else:
+        # elif block_type == BlockType.UNORDERED_LIST:
+        # elif block_type == BlockType.ORDERED_LIST:
+        # else:
         return block
-

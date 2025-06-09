@@ -36,8 +36,6 @@ the **same** even with inline stuff
             "<div><pre><code>\nThis is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
 
-    #UNORDERED_LIST = "unordered_list"
-    #ORDERED_LIST = "ordered_list"
     def test_heading(self):
         md = """
 # heading 1
@@ -62,7 +60,6 @@ the **same** even with inline stuff
         )
 
     def test_quote(self):
-        # TODO This test is not correct. Review the reference to understand how a quote hmtl looks like
         md = """
 >first line of quote.
 >second line of quote.
@@ -74,7 +71,37 @@ the **same** even with inline stuff
         print("\n" + html)
         self.assertEqual(
             html,
-            "<div><blockquote>first line of quote. second line of quote. third line of quote.</blockquote></div>",
+            "<div><blockquote><p>first line of quote. second line of quote. third line of quote.</p></blockquote></div>",
+        )
+
+    def test_unordered_list(self):
+        md = """
+- first item
+- second item
+- third item
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        print("\n" + html)
+        self.assertEqual(
+            html,
+            "<div><ul><li>first item</li><li>second item</li><li>third item</li></ul></div>",
+        )
+
+    def test_ordered_list(self):
+        md = """
+1. first item
+2. second item
+3. third item
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        print("\n" + html)
+        self.assertEqual(
+            html,
+            "<div><ol><li>first item</li><li>second item</li><li>third item</li></ol></div>",
         )
 
 

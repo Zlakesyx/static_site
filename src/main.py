@@ -22,18 +22,34 @@ def markdown_to_html_node(markdown: str) -> HTMLNode:
             parent_node = ParentNode("p", text_to_children(block))
         elif block_type == BlockType.HEADING:
             count = block.count("#", 0, 6)
-            block = block.lstrip("#"*count + " ")
+            block = block.lstrip("#" * count + " ")
             parent_node = ParentNode(f"h{count}", text_to_children(block))
         elif block_type == BlockType.CODE:
             block = block.strip("```")
             parent_node = code_parent(block)
         elif block_type == BlockType.QUOTE:
             block = block.replace(">", "")
-            parent_node = ParentNode("blockquote", text_to_children(block))
+            parent_node = ParentNode(
+                "blockquote",
+                [ParentNode("p", text_to_children(block))],
+            )
         elif block_type == BlockType.UNORDERED_LIST:
-            parent_node = ParentNode("ul", text_to_children(block))
+            block = block.replace("- ", "")
+            parent_node = ParentNode(
+                "ul",
+                [
+                    ParentNode("li", [LeafNode(None, item)])
+                    for item in block.split("\n")
+                ],
+            )
         elif block_type == BlockType.ORDERED_LIST:
-            parent_node = ParentNode("ol", text_to_children(block))
+            parent_node = ParentNode(
+                "ol",
+                [
+                    ParentNode("li", [LeafNode(None, item.split(". ", 1)[1])])
+                    for item in block.split("\n")
+                ],
+            )
         else:
             raise ValueError("Could not identify block type")
         children.append(parent_node)
