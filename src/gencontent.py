@@ -4,7 +4,7 @@ from markdown_blocks import markdown_to_html_node
 
 
 def generate_pages_recursive(
-    dir_path_content: str, template_path: str, dest_dir_path: str
+    dir_path_content: str, template_path: str, dest_dir_path: str, basepath: str
 ):
     if not os.path.exists(dest_dir_path):
         os.mkdir(dest_dir_path)
@@ -16,15 +16,15 @@ def generate_pages_recursive(
             # Only generate from markdown files
             if extension == ".md":
                 dest_path = os.path.join(dest_dir_path, filename + ".html")
-                generate_page(from_path, template_path, dest_path)
+                generate_page(from_path, template_path, dest_path, basepath)
         elif os.path.isdir(from_path):
             dest_path = os.path.join(dest_dir_path, filename)
-            generate_pages_recursive(from_path, template_path, dest_path)
+            generate_pages_recursive(from_path, template_path, dest_path, basepath)
         else:
             continue
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(from_path: str, template_path: str, dest_path: str, basepath: str):
     print(f" * {from_path} {template_path} -> {dest_path}")
     with open(from_path, "r", encoding="utf-8") as from_file:
         markdown_content = from_file.read()
@@ -38,6 +38,8 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
     title = extract_title(markdown_content)
     template = template.replace("{{ Title }}", title)
     template = template.replace("{{ Content }}", html)
+    template = template.replace("href=\"/", f"href=\"{basepath}")
+    template = template.replace("src=\"/", f"src=\"{basepath}")
 
     dest_dir_path = os.path.dirname(dest_path)
     if dest_dir_path != "":
