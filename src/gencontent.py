@@ -3,7 +3,9 @@ import shutil
 from markdown_blocks import markdown_to_html_node
 
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+def generate_pages_recursive(
+    dir_path_content: str, template_path: str, dest_dir_path: str
+):
     if not os.path.exists(dest_dir_path):
         os.mkdir(dest_dir_path)
 
